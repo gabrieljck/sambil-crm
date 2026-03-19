@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sambil CRM — Sistema de Gestión Interna</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#C9922A;--gold-lt:#F5E6C8;--gold-dk:#8B6010;
+  --nav:#0F1923;--nav2:#162030;
+  --bg:#F4F2EE;--bg2:#ECEAE5;--white:#FFFFFF;
+  --text:#1C1A18;--muted:#6B6860;--subtle:#A8A69F;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --green:#2E7D32;--green-lt:#E8F5E9;
+  --red:#C62828;--red-lt:#FFEBEE;
+  --amber:#E65100;--amber-lt:#FFF3E0;
+  --blue:#1565C0;--blue-lt:#E3F2FD;
+  --r:8px;--rl:12px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;}
+.sidebar{width:220px;min-width:220px;background:var(--nav);display:flex;flex-direction:column;overflow:hidden;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.content{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── SIDEBAR ── */
+.brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.brand-name{font-family:'DM Serif Display',serif;font-size:17px;color:var(--gold);letter-spacing:.03em;}
+.brand-sub{font-size:10px;color:rgba(255,255,255,0.28);margin-top:3px;letter-spacing:.05em;text-transform:uppercase;}
+.nav-group{padding:12px 0 4px;}
+.nav-lbl{font-size:9px;color:rgba(255,255,255,0.22);letter-spacing:.12em;text-transform:uppercase;padding:0 18px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 18px;cursor:pointer;color:rgba(255,255,255,0.48);font-size:13px;border-left:2px solid transparent;transition:all .15s;user-select:none;}
+.nav-item:hover{color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.04);}
+.nav-item.active{color:var(--gold);background:rgba(201,146,42,0.09);border-left-color:var(--gold);}
+.nav-icon{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-badge{margin-left:auto;background:var(--gold);color:var(--nav);border-radius:10px;font-size:9px;padding:1px 6px;font-weight:500;}
+.sidebar-footer{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:10px;}
+.avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(201,146,42,0.18);color:var(--gold);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sidebar-user{font-size:12px;color:rgba(255,255,255,0.65);}
+.sidebar-role{font-size:10px;color:rgba(255,255,255,0.28);}
+
+/* ── TOPBAR ── */
+.topbar-title{font-size:15px;font-weight:500;flex:1;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:var(--gold-dk);}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border2);}
+.btn-outline:hover{background:var(--bg2);}
+.btn-sm{padding:5px 12px;font-size:11px;}
+
+/* ── SECTIONS ── */
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── METRIC CARDS ── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.metric{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;}
+.metric-val{font-size:26px;font-weight:300;font-family:'DM Serif Display',serif;color:var(--text);line-height:1;}
+.metric-lbl{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.metric-chg{font-size:11px;margin-top:6px;}
+.chg-up{color:var(--green);}
+.chg-dn{color:var(--red);}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;}
+.card-hd{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:13px;font-weight:500;}
+.card-link{font-size:11px;color:var(--gold);cursor:pointer;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-weight:500;color:var(--muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+td{font-size:12.5px;padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap;}
+.b-green{background:var(--green-lt);color:var(--green);}
+.b-red{background:var(--red-lt);color:var(--red);}
+.b-amber{background:var(--amber-lt);color:var(--amber);}
+.b-blue{background:var(--blue-lt);color:var(--blue);}
+.b-gray{background:var(--bg2);color:var(--muted);}
+.b-gold{background:var(--gold-lt);color:var(--gold-dk);}
+
+/* ── FORMS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:11px;color:var(--muted);font-weight:500;}
+.field input,.field select,.field textarea{
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--r);padding:9px 12px;color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:var(--white);}
+.field textarea{resize:vertical;min-height:72px;}
+
+/* ── ALERT ITEMS ── */
+.alert-item{display:flex;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.dot-red{background:var(--red);}
+.dot-amber{background:#F57C00;}
+.dot-blue{background:var(--blue);}
+.dot-green{background:var(--green);}
+.alert-body{flex:1;}
+.alert-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.alert-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.alert-time{font-size:10px;color:var(--subtle);margin-top:4px;}
+.alert-action{font-size:11px;color:var(--gold);cursor:pointer;margin-top:6px;display:inline-block;border:1px solid var(--gold-lt);padding:3px 10px;border-radius:4px;background:var(--gold-lt);}
+
+/* ── TOWER MAP ── */
+.tower-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.tower-card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;}
+.tower-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.tower-title{font-size:13px;font-weight:500;}
+.tower-legend{display:flex;gap:10px;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.leg-dot{width:10px;height:10px;border-radius:2px;}
+.tower-body{padding:12px 16px;}
+.floor-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.floor-row:last-child{border-bottom:none;}
+.floor-num{width:48px;color:var(--muted);flex-shrink:0;}
+.unit-box{width:22px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.unit-box:hover{opacity:.75;}
+.u-disp{background:var(--green-lt);color:var(--green);}
+.u-vend{background:var(--red-lt);color:var(--red);}
+.u-res{background:var(--amber-lt);color:var(--amber);}
+.u-const{background:var(--bg2);color:var(--muted);}
+
+/* ── PROGRESS ── */
+.prog-bar{height:5px;background:var(--bg2);border-radius:5px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--gold);border-radius:5px;transition:width .4s;}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.prog-lbl{font-size:11px;color:var(--muted);width:160px;flex-shrink:0;}
+.prog-val{font-size:11px;color:var(--muted);width:36px;text-align:right;}
+
+/* ── TOGGLE ── */
+.toggle{width:34px;height:19px;background:var(--border2);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--gold);}
+.toggle-knob{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;}
+.toggle.on .toggle-knob{left:17px;}
+
+/* ── TEMPLATE CARDS ── */
+.tmpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px;}
+.tmpl-card{border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;}
+.tmpl-card:hover{border-color:var(--gold);background:var(--gold-lt);}
+.tmpl-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.tmpl-desc{font-size:10px;color:var(--muted);}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--nav);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;width:380px;}
+.login-brand{font-family:'DM Serif Display',serif;font-size:28px;color:var(--gold);margin-bottom:4px;}
+.login-sub{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:36px;letter-spacing:.04em;}
+.login-label{font-size:11px;color:rgba(255,255,255,0.45);display:block;margin-bottom:6px;}
+.login-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:var(--r);padding:11px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-bottom:14px;transition:border-color .15s;}
+.login-input:focus{border-color:var(--gold);}
+.login-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:var(--r);padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;transition:background .15s;}
+.login-btn:hover{background:var(--gold-dk);}
+.login-err{font-size:11px;color:#ef5350;margin-top:8px;display:none;}
+.login-users{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07);}
+.login-users-lbl{font-size:10px;color:rgba(255,255,255,0.22);margin-bottom:10px;letter-spacing:.05em;text-transform:uppercase;}
+.login-user-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;cursor:pointer;margin:3px 4px 3px 0;transition:all .15s;}
+.login-user-chip:hover{background:rgba(201,146,42,0.12);border-color:rgba(201,146,42,0.3);}
+.chip-avatar{width:18px;height:18px;border-radius:50%;background:rgba(201,146,42,0.25);color:var(--gold);font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:500;}
+.chip-name{font-size:11px;color:rgba(255,255,255,0.55);}
+
+/* ── NOTIFICATION ── */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--nav);color:#fff;padding:12px 20px;border-radius:var(--rl);font-size:13px;border-left:3px solid var(--gold);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;}
+.notif.show{transform:translateY(0);opacity:1;}
+
+/* ── FORM PANEL ── */
+.form-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:16px;display:none;}
+.form-panel.open{display:block;}
+.form-panel-title{font-size:14px;font-weight:500;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+/* ── CONTRATO STATUS ── */
+.stat-pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:500;}
+
+/* ── RESPONSIVE FIX ── */
+@media(max-width:900px){.metrics{grid-template-columns:1fr 1fr;}.grid2{grid-template-columns:1fr;}.tower-wrap{grid-template-columns:1fr;}}
+@media(max-width:640px){.sidebar{display:none;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-brand">Sambil CRM</div>
+    <div class="login-sub">Sistema de gestión interna · Constructora Sambil</div>
+    <label class="login-label">Correo electrónico</label>
+    <input class="login-input" id="login-email" type="email" placeholder="tu@sambil.com">
+    <label class="login-label">Contraseña</label>
+    <input class="login-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrar al sistema</button>
+    <div class="login-err" id="login-err">Credenciales incorrectas. Intenta nuevamente.</div>
+    <div class="login-users">
+      <div class="login-users-lbl">Acceso rápido (demo)</div>
+      <div class="login-user-chip" onclick="quickLogin('gabrielsambil@gmail.com','admin123','Gabriel S.','Administrador')">
+        <div class="chip-avatar">GS</div><span class="chip-name">Gabriel S.</span>
+      </div>
+      <div class="login-user-chip" onclick="quickLogin('andrea@sambil.com','sambil2024','Andrea M.','Asesora')">
+        <div class="chip-avatar">AM</div><span class="chip-name">Andrea M.</span>
+      </div>
+      <div class="login-user-chip" onclick="quickLogin('georgette@sambil.com','sambil2024','Georgette R.','Asesora')">
+        <div class="chip-avatar">GR</div><span class="chip-name">Georgette R.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACIÓN TOAST -->
+<div class="notif" id="notif"></div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Sambil CRM</div>
+      <div class="brand-sub">Gestión interna</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-lbl">Principal</div>
+      <div class="nav-item active" data-sec="dashboard">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-sec="clientes">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="6" r="2"/><path d="M11 14c0-2 1-3 2-3"/></svg>
+        Clientes
+        <span class="nav-badge" id="badge-clientes">24</span>
+      </div>
+      <div class="nav-item" data-sec="inventario">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5 3V1M11 3V1M1 7h14" stroke="currentColor" fill="none"/></svg>
+        Inventario
+      </div>
+      <div class="nav-item" data-sec="contratos">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="1" width="12" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5 5h6M5 8h6M5 11h3" stroke="currentColor" fill="none"/></svg>
+        Contratos
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-lbl">Comunicación</div>
+      <div class="nav-item" data-sec="alertas">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 0 0-5 5v3l-1 2h12l-1-2V6a5 5 0 0 0-5-5z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/></svg>
+        Alertas
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" data-sec="reportes">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 12L5 8L8 10L11 5L14 7" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="1" width="14" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+        Reportes
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar-sm" id="sb-avatar">GS</div>
+      <div>
+        <div class="sidebar-user" id="sb-name">Gabriel S.</div>
+        <div class="sidebar-role" id="sb-role">Administrador</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard general</div>
+      <button class="btn btn-outline btn-sm" id="topbar-sec-btn" onclick="topbarAction()">Exportar CSV</button>
+      <button class="btn btn-gold btn-sm" id="topbar-main-btn" onclick="topbarMainAction()">+ Nuevo prospecto</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ════════════════════════════════ DASHBOARD ════════════════════════════════ -->
+      <div class="section active" id="sec-dashboard">
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-lbl">Prospectos activos</div>
+            <div class="metric-val" id="m-prospectos">24</div>
+            <div class="metric-chg chg-up">+6 esta semana</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Unidades disponibles</div>
+            <div class="metric-val" id="m-disponibles">47</div>
+            <div class="metric-chg chg-dn">−3 vs semana ant.</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Contratos activos</div>
+            <div class="metric-val">18</div>
+            <div class="metric-chg chg-up">+2 este mes</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Cobros este mes</div>
+            <div class="metric-val">$89K</div>
+            <div class="metric-chg chg-up">+18% vs anterior</div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Prospectos recientes</span><span class="card-link" onclick="goSection('clientes')">Ver todos →</span></div>
+            <table>
+              <tr><th>Cliente</th><th>Producto</th><th>Estado</th></tr>
+              <tr><td><strong>María Rodríguez</strong></td><td><span class="badge b-gold">Apto Torre B</span></td><td><span class="badge b-amber">Negociando</span></td></tr>
+              <tr><td><strong>Carlos Mendoza</strong></td><td><span class="badge b-blue">Oficina 120m²</span></td><td><span class="badge b-green">Calificado</span></td></tr>
+              <tr><td><strong>Ana González</strong></td><td><span class="badge b-gold">Apto Torre C</span></td><td><span class="badge b-amber">Interesado</span></td></tr>
+              <tr><td><strong>Luis Pérez</strong></td><td><span class="badge b-blue">Local comercial</span></td><td><span class="badge b-gray">Nuevo</span></td></tr>
+              <tr><td><strong>Patricia Ruiz</strong></td><td><span class="badge b-gold">PH Torre B</span></td><td><span class="badge b-green">Calificado</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Alertas urgentes</span><span class="card-link" onclick="goSection('alertas')">Ver todas →</span></div>
+            <div class="alert-item">
+              <div class="alert-dot dot-red"></div>
+              <div class="alert-body">
+                <div class="alert-title">Seguimiento: María Rodríguez</div>
+                <div class="alert-desc">4 días sin contacto · Torre B Piso 14</div>
+                <div class="alert-time">Hace 1 hora</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-amber"></div>
+              <div class="alert-body">
+                <div class="alert-title">Contrato CTR-004 vence en 7 días</div>
+                <div class="alert-desc">Local LC-001 · Diego Salazar</div>
+                <div class="alert-time">Hace 3 horas</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-blue"></div>
+              <div class="alert-body">
+                <div class="alert-title">Reporte semanal listo</div>
+                <div class="alert-desc">Programado: viernes 9:00 AM</div>
+                <div class="alert-time">Hoy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Disponibilidad por producto</span></div>
+          <div style="padding:16px 20px;">
+            <div class="prog-row"><span class="prog-lbl">Apartamentos Doral Greco</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:62%"></div></div><span class="prog-val">62%</span><span style="font-size:10px;color:var(--muted);margin-left:8px;">28/45 disp.</span></div>
+            <div class="prog-row"><span class="prog-lbl">Oficinas en venta</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:45%"></div></div><span class="prog-val">45%</span><span style="font-size:10px;color:var(--muted);margin-left:8px;">9/20 disp.</span></div>
+            <div class="prog-row"><span class="prog-lbl">Oficinas en alquiler</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:30%"></div></div><span class="prog-val">30%</span><span style="font-size:10px;color:var(--muted);margin-left:8px;">6/20 disp.</span></div>
+            <div class="prog-row" style="margin-bottom:0"><span class="prog-lbl">Locales comerciales</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:80%"></div></div><span class="prog-val">80%</span><span style="font-size:10px;color:var(--muted);margin-left:8px;">4/5 disp.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ CLIENTES / CRM ════════════════════════════════ -->
+      <div class="section" id="sec-clientes">
+        <div class="form-panel" id="form-prospecto">
+          <div class="form-panel-title">Registrar nuevo prospecto</div>
+          <div class="form-grid">
+            <div class="field"><label>Nombre completo</label><input id="f-nombre" placeholder="Nombre y apellido"></div>
+            <div class="field"><label>WhatsApp</label><input id="f-wa" placeholder="+58 414 000 0000"></div>
+            <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="correo@email.com"></div>
+            <div class="field"><label>País de residencia</label><input id="f-pais" placeholder="Venezuela / España..."></div>
+            <div class="field"><label>Producto de interés</label>
+              <select id="f-producto">
+                <option>Apartamento Doral Greco — Torre B</option>
+                <option>Apartamento Doral Greco — Torre C</option>
+                <option>PH Torre B</option>
+                <option>PH Torre C</option>
+                <option>Oficina en venta</option>
+                <option>Oficina en alquiler</option>
+                <option>Local comercial</option>
+              </select>
+            </div>
+            <div class="field"><label>Asesor asignado</label>
+              <select id="f-asesor"><option>Andrea M.</option><option>Georgette R.</option><option>Gabriel S.</option><option>Sin asignar</option></select>
+            </div>
+            <div class="field"><label>Capacidad inicial</label>
+              <select id="f-cap"><option>Menos de $50,000</option><option>$50,000 – $100,000</option><option>$100,000 – $200,000</option><option>Más de $200,000</option></select>
+            </div>
+            <div class="field"><label>Fuente del lead</label>
+              <select id="f-fuente"><option>Instagram</option><option>Referido</option><option>Visita directa</option><option>Portal inmobiliario</option><option>WhatsApp</option><option>Evento</option></select>
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px"><label>Comentarios</label><textarea id="f-coment" placeholder="Preferencias, observaciones, próximo seguimiento..."></textarea></div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="btn btn-gold" onclick="guardarProspecto()">Guardar prospecto</button>
+            <button class="btn btn-outline" onclick="cerrarForm()">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">Todos los prospectos</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select style="font-size:11px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);" id="filtro-estado" onchange="filtrarLeads()">
+                <option value="">Todos los estados</option>
+                <option>Nuevo</option><option>Interesado</option><option>Calificado</option><option>Negociando</option><option>Vendido/Firmado</option>
+              </select>
+              <select style="font-size:11px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);" id="filtro-prod" onchange="filtrarLeads()">
+                <option value="">Todos los productos</option>
+                <option>Apartamentos</option><option>Oficinas</option><option>Locales</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Cliente</th><th>Producto</th><th>Asesor</th><th>País</th><th>Estado</th><th>Seguimiento</th><th>Acción</th></tr></thead>
+              <tbody id="leads-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ INVENTARIO ════════════════════════════════ -->
+      <div class="section" id="sec-inventario">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button class="btn btn-gold btn-sm active-tab" id="tab-torres" onclick="switchInvTab('torres')">Torres B y C</button>
+          <button class="btn btn-outline btn-sm" id="tab-oficinas" onclick="switchInvTab('oficinas')">Oficinas</button>
+          <button class="btn btn-outline btn-sm" id="tab-locales" onclick="switchInvTab('locales')">Locales comerciales</button>
+        </div>
+
+        <div id="inv-torres">
+          <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+            <div class="metric"><div class="metric-lbl">Disponibles</div><div class="metric-val" style="color:var(--green);">28</div></div>
+            <div class="metric"><div class="metric-lbl">Vendidos</div><div class="metric-val" style="color:var(--red);">38</div></div>
+            <div class="metric"><div class="metric-lbl">Reservados</div><div class="metric-val" style="color:var(--amber);">5</div></div>
+            <div class="metric"><div class="metric-lbl">Constructora</div><div class="metric-val" style="color:var(--muted);">2</div></div>
+          </div>
+          <div class="tower-wrap">
+            <div class="tower-card">
+              <div class="tower-hd">
+                <span class="tower-title">Torre B</span>
+                <div class="tower-legend">
+                  <div class="leg-item"><div class="leg-dot u-disp"></div>Disp.</div>
+                  <div class="leg-item"><div class="leg-dot u-vend"></div>Vendido</div>
+                  <div class="leg-item"><div class="leg-dot u-res"></div>Reservado</div>
+                </div>
+              </div>
+              <div class="tower-body" id="torre-b-body"></div>
+            </div>
+            <div class="tower-card">
+              <div class="tower-hd">
+                <span class="tower-title">Torre C</span>
+                <div class="tower-legend">
+                  <div class="leg-item"><div class="leg-dot u-disp"></div>Disp.</div>
+                  <div class="leg-item"><div class="leg-dot u-vend"></div>Vendido</div>
+                  <div class="leg-item"><div class="leg-dot u-res"></div>Reservado</div>
+                </div>
+              </div>
+              <div class="tower-body" id="torre-c-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="inv-oficinas" style="display:none;">
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Oficinas disponibles</span></div>
+            <table>
+              <thead><tr><th>Código</th><th>Área</th><th>Piso</th><th>Modalidad</th><th>Precio</th><th>Uso</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td><strong>OF-A101</strong></td><td>45 m²</td><td>1</td><td>Venta</td><td>$67,500</td><td>Individual</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>OF-A102</strong></td><td>48 m²</td><td>1</td><td>Alquiler</td><td>$850/mes</td><td>Individual</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>OF-B201</strong></td><td>120 m²</td><td>2</td><td>Venta</td><td>$180,000</td><td>Mediana</td><td><span class="badge b-amber">Reservada</span></td></tr>
+                <tr><td><strong>OF-B202</strong></td><td>95 m²</td><td>2</td><td>Alquiler</td><td>$1,800/mes</td><td>Mediana</td><td><span class="badge b-red">Alquilada</span></td></tr>
+                <tr><td><strong>OF-C301</strong></td><td>250 m²</td><td>3</td><td>Venta</td><td>$375,000</td><td>Corporativa</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>OF-C302</strong></td><td>200 m²</td><td>3</td><td>Alquiler</td><td>$3,500/mes</td><td>Corporativa</td><td><span class="badge b-green">Disponible</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="inv-locales" style="display:none;">
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Locales comerciales</span></div>
+            <table>
+              <thead><tr><th>Código</th><th>Área</th><th>Ubicación</th><th>Uso permitido</th><th>Precio/mes</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td><strong>LC-001</strong></td><td>35 m²</td><td>Planta baja A</td><td>Retail / Gastronomía</td><td>$1,200</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>LC-002</strong></td><td>60 m²</td><td>Planta baja B</td><td>Retail / Servicios</td><td>$2,100</td><td><span class="badge b-red">Alquilado</span></td></tr>
+                <tr><td><strong>LC-003</strong></td><td>80 m²</td><td>Planta baja C</td><td>Restaurante / Comercio</td><td>$2,800</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>LC-004</strong></td><td>120 m²</td><td>Mezzanine</td><td>Oficina / Comercio</td><td>$3,500</td><td><span class="badge b-green">Disponible</span></td></tr>
+                <tr><td><strong>LC-005</strong></td><td>200 m²</td><td>Planta baja D</td><td>Supermercado / Ancora</td><td>$6,000</td><td><span class="badge b-red">Alquilado</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ CONTRATOS ════════════════════════════════ -->
+      <div class="section" id="sec-contratos">
+        <div class="metrics">
+          <div class="metric"><div class="metric-lbl">Contratos activos</div><div class="metric-val">18</div></div>
+          <div class="metric"><div class="metric-lbl">Pendientes firma</div><div class="metric-val" style="color:var(--amber);">3</div></div>
+          <div class="metric"><div class="metric-lbl">Vencen en 30 días</div><div class="metric-val" style="color:var(--red);">2</div></div>
+          <div class="metric"><div class="metric-lbl">Cobros este mes</div><div class="metric-val">$89,400</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Contratos vigentes</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Contrato</th><th>Cliente</th><th>Unidad</th><th>Tipo</th><th>Valor total</th><th>Próximo pago</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td><span style="color:var(--gold);font-weight:500;">CTR-001</span></td><td>Juan Martínez</td><td>Torre B P11 Apt A</td><td>Venta 10 años</td><td>$285,000</td><td>01 Abr · $1,900</td><td><span class="badge b-green">Al día</span></td></tr>
+                <tr><td><span style="color:var(--gold);font-weight:500;">CTR-002</span></td><td>Tecnoserv C.A.</td><td>Oficina OF-C301</td><td>Alquiler anual</td><td>$42,000</td><td>15 Abr · $3,500</td><td><span class="badge b-green">Al día</span></td></tr>
+                <tr><td><span style="color:var(--gold);font-weight:500;">CTR-003</span></td><td>Rosa Blanco</td><td>Torre C P8 Apt B</td><td>Venta 10 años</td><td>$312,000</td><td>10 Abr · $2,100</td><td><span class="badge b-amber">Pago parcial</span></td></tr>
+                <tr><td><span style="color:var(--gold);font-weight:500;">CTR-004</span></td><td>Diego Salazar</td><td>Local LC-001</td><td>Alquiler mensual</td><td>$14,400/año</td><td>01 Abr · $1,200</td><td><span class="badge b-red">Vence pronto</span></td></tr>
+                <tr><td><span style="color:var(--gold);font-weight:500;">CTR-005</span></td><td>Grupo Meridian</td><td>Oficina OF-B201</td><td>Venta</td><td>$180,000</td><td>Pendiente firma</td><td><span class="badge b-amber">Pendiente</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ ALERTAS ════════════════════════════════ -->
+      <div class="section" id="sec-alertas">
+        <div class="metrics">
+          <div class="metric"><div class="metric-lbl">Críticas</div><div class="metric-val" style="color:var(--red);">2</div></div>
+          <div class="metric"><div class="metric-lbl">Importantes</div><div class="metric-val" style="color:var(--amber);">4</div></div>
+          <div class="metric"><div class="metric-lbl">Informativas</div><div class="metric-val" style="color:var(--blue);">5</div></div>
+          <div class="metric"><div class="metric-lbl">Resueltas hoy</div><div class="metric-val" style="color:var(--green);">3</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Alertas activas</span></div>
+            <div class="alert-item">
+              <div class="alert-dot dot-red"></div>
+              <div class="alert-body">
+                <div class="alert-title">Seguimiento urgente: María Rodríguez</div>
+                <div class="alert-desc">4 días sin contacto — Apto Torre B Piso 14. Riesgo de perder el lead.</div>
+                <div class="alert-time">Hace 1 hora</div>
+                <span class="alert-action" onclick="toast('Redactando mensaje para María Rodríguez...')">Redactar mensaje</span>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-red"></div>
+              <div class="alert-body">
+                <div class="alert-title">Contrato CTR-004 vence en 7 días</div>
+                <div class="alert-desc">Local LC-001 — Diego Salazar. Confirmar renovación o liberar unidad.</div>
+                <div class="alert-time">Hace 3 horas</div>
+                <span class="alert-action" onclick="toast('Abriendo plantilla de renovación...')">Redactar email</span>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-amber"></div>
+              <div class="alert-body">
+                <div class="alert-title">Pago parcial: Rosa Blanco (CTR-003)</div>
+                <div class="alert-desc">Falta $1,050 del pago de marzo. Cuota: $2,100.</div>
+                <div class="alert-time">Ayer</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-amber"></div>
+              <div class="alert-body">
+                <div class="alert-title">CTR-005 pendiente de firma — Grupo Meridian</div>
+                <div class="alert-desc">Oficina OF-B201. 5 días en estado pendiente.</div>
+                <div class="alert-time">Hace 5 días</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-blue"></div>
+              <div class="alert-body">
+                <div class="alert-title">Reporte semanal listo para enviar</div>
+                <div class="alert-desc">Programado: viernes 9:00 AM al equipo completo.</div>
+                <div class="alert-time">Hoy</div>
+                <span class="alert-action" onclick="toast('Reporte semanal enviado al equipo ✓')">Enviar ahora</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Configurar alertas automáticas</span></div>
+            <div style="padding:16px 20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <div><div style="font-size:13px;font-weight:500;">Sin contacto +3 días</div><div style="font-size:11px;color:var(--muted);">Alerta roja automática al asesor</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <div><div style="font-size:13px;font-weight:500;">Contrato vence en 7 días</div><div style="font-size:11px;color:var(--muted);">Email al asesor y al cliente</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <div><div style="font-size:13px;font-weight:500;">Reporte semanal al equipo</div><div style="font-size:11px;color:var(--muted);">Viernes 9:00 AM · Gmail automático</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+                <div><div style="font-size:13px;font-weight:500;">Pago vencido +2 días</div><div style="font-size:11px;color:var(--muted);">WhatsApp + email al cliente</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+                <div><div style="font-size:13px;font-weight:500;">Notif. WhatsApp al asesor</div><div style="font-size:11px;color:var(--muted);">Requiere Twilio configurado</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ REPORTES ════════════════════════════════ -->
+      <div class="section" id="sec-reportes">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Reportes programados</span></div>
+            <div class="alert-item">
+              <div class="alert-dot dot-green"></div>
+              <div class="alert-body">
+                <div class="alert-title">Reporte semanal — Equipo completo</div>
+                <div class="alert-desc">Cada viernes 9:00 AM · Próximo: 20 Mar</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-blue"></div>
+              <div class="alert-body">
+                <div class="alert-title">Reporte mensual — Dirección</div>
+                <div class="alert-desc">Cada 1° del mes · Próximo: 1 Abr</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-amber"></div>
+              <div class="alert-body">
+                <div class="alert-title">Estado de cobros — Administración</div>
+                <div class="alert-desc">Cada lunes 8:00 AM · Próximo: 23 Mar</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Generar reporte ahora</span></div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+              <div class="field"><label>Tipo de reporte</label>
+                <select><option>Reporte completo</option><option>Ventas del período</option><option>Estado de inventario</option><option>Seguimiento de prospectos</option><option>Cobros y contratos</option></select>
+              </div>
+              <div class="field"><label>Período</label>
+                <select><option>Esta semana</option><option>Este mes</option><option>Último trimestre</option></select>
+              </div>
+              <div class="field"><label>Destinatarios (emails separados por coma)</label>
+                <input placeholder="gabrielsambil@gmail.com, andrea@sambil.com...">
+              </div>
+              <button class="btn btn-gold" onclick="toast('Reporte generado y enviado al equipo ✓')">Generar y enviar por email</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Plantillas de email rápido</span></div>
+          <div class="tmpl-grid">
+            <div class="tmpl-card" onclick="toast('Plantilla «Bienvenida prospecto» copiada')">
+              <div class="tmpl-name">Bienvenida prospecto</div>
+              <div class="tmpl-desc">Email inicial para nuevo lead interesado</div>
+            </div>
+            <div class="tmpl-card" onclick="toast('Plantilla «Seguimiento visita» copiada')">
+              <div class="tmpl-name">Seguimiento post-visita</div>
+              <div class="tmpl-desc">Sin respuesta después del showroom</div>
+            </div>
+            <div class="tmpl-card" onclick="toast('Plantilla «Recordatorio de pago» copiada')">
+              <div class="tmpl-name">Recordatorio de pago</div>
+              <div class="tmpl-desc">Cuota mensual próxima a vencer</div>
+            </div>
+            <div class="tmpl-card" onclick="toast('Plantilla «Propuesta corporativa» copiada')">
+              <div class="tmpl-name">Propuesta corporativa</div>
+              <div class="tmpl-desc">Oferta formal para empresa u oficina</div>
+            </div>
+            <div class="tmpl-card" onclick="toast('Plantilla «Cierre exitoso» copiada')">
+              <div class="tmpl-name">Cierre exitoso</div>
+              <div class="tmpl-desc">Confirmación de contrato firmado</div>
+            </div>
+            <div class="tmpl-card" onclick="toast('Plantilla «Resumen equipo» copiada')">
+              <div class="tmpl-name">Resumen semanal equipo</div>
+              <div class="tmpl-desc">Update interno del equipo de ventas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── USUARIOS DEMO ──
+const USERS = {
+  'gabrielsambil@gmail.com': {pw:'admin123', name:'Gabriel S.', role:'Administrador', initials:'GS'},
+  'admin@sambil.com':        {pw:'admin123', name:'Gabriel S.', role:'Administrador', initials:'GS'},
+  'andrea@sambil.com':       {pw:'sambil2024', name:'Andrea M.', role:'Asesora', initials:'AM'},
+  'georgette@sambil.com':    {pw:'sambil2024', name:'Georgette R.', role:'Asesora', initials:'GR'},
+};
+
+let currentUser = null;
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('login-pw').value;
+  const user  = USERS[email];
+  if (user && user.pw === pw) {
+    loginSuccess(user);
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function quickLogin(email, pw, name, role) {
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-pw').value = pw;
+  doLogin();
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('sb-name').textContent    = user.name;
+  document.getElementById('sb-role').textContent    = user.role;
+  document.getElementById('sb-avatar').textContent  = user.initials;
+  renderLeads();
+  renderTorres();
+}
+
+// ── NAVEGACIÓN ──
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const sec = item.dataset.sec;
+    goSection(sec);
+  });
+});
+
+function goSection(sec) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const ni = document.querySelector(`[data-sec="${sec}"]`);
+  if (ni) ni.classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const sd = document.getElementById('sec-' + sec);
+  if (sd) sd.classList.add('active');
+
+  const titles = {dashboard:'Dashboard general', clientes:'Clientes y prospectos', inventario:'Inventario de unidades', contratos:'Contratos y pagos', alertas:'Centro de alertas', reportes:'Reportes y comunicación'};
+  const secBtns = {dashboard:['Exportar CSV','+ Nuevo prospecto'], clientes:['Exportar CSV','+ Nuevo prospecto'], inventario:['Actualizar datos','+ Agregar unidad'], contratos:['Exportar contratos','+ Nuevo contrato'], alertas:['Marcar todas leídas','Configurar'], reportes:['Ver historial','Generar reporte']};
+  document.getElementById('topbar-title').textContent = titles[sec] || sec;
+  const btns = secBtns[sec] || ['Acción','Nueva'];
+  document.getElementById('topbar-sec-btn').textContent  = btns[0];
+  document.getElementById('topbar-main-btn').textContent = btns[1];
+}
+
+function topbarAction() { toast('Exportando datos...'); }
+function topbarMainAction() {
+  const active = document.querySelector('.nav-item.active')?.dataset.sec;
+  if (active === 'clientes') toggleForm();
+  else toast('Función disponible próximamente');
+}
+
+// ── LEADS DATA ──
+let leads = [
+  {nombre:'María Rodríguez', wa:'+58 414 111 2233', email:'maria@email.com', pais:'Venezuela', producto:'Apto Torre B', asesor:'Andrea M.', estado:'Negociando', cap:'$100k–$200k', fuente:'Instagram', follow:'Urgente'},
+  {nombre:'Carlos Mendoza',  wa:'+34 612 345 678',  email:'cmendoza@corp.es', pais:'España',    producto:'Oficina 120m²', asesor:'Georgette R.', estado:'Calificado', cap:'>$200k', fuente:'Referido', follow:'Esta semana'},
+  {nombre:'Ana González',    wa:'+1 305 987 6543',  email:'ana.g@mail.com',  pais:'EEUU',      producto:'Apto Torre C', asesor:'Andrea M.', estado:'Interesado', cap:'$50k–$100k', fuente:'Instagram', follow:'Hoy'},
+  {nombre:'Luis Pérez',      wa:'+58 424 555 1234', email:'lperez@biz.com',  pais:'Venezuela', producto:'Local comercial', asesor:'Sin asignar', estado:'Nuevo', cap:'<$50k', fuente:'Visita directa', follow:'Pendiente'},
+  {nombre:'Patricia Ruiz',   wa:'+57 320 111 9988', email:'p.ruiz@mail.com', pais:'Colombia',  producto:'PH Torre B', asesor:'Georgette R.', estado:'Calificado', cap:'>$200k', fuente:'Referido', follow:'Mañana'},
+  {nombre:'Roberto Lima',    wa:'+58 412 777 3344', email:'rlima@tech.com',  pais:'Venezuela', producto:'Oficina 50m²', asesor:'Andrea M.', estado:'Interesado', cap:'$50k–$100k', fuente:'WhatsApp', follow:'Esta semana'},
+  {nombre:'Carla Torres',    wa:'+351 91 234 5678', email:'ctorres@pt.com',  pais:'Portugal',  producto:'Apto Torre C', asesor:'Georgette R.', estado:'Nuevo', cap:'$100k–$200k', fuente:'Portal inmobiliario', follow:'Pendiente'},
+];
+
+const estadoBadge = {Nuevo:'b-gray', Interesado:'b-blue', Calificado:'b-green', Negociando:'b-amber', 'Vendido/Firmado':'b-gold'};
+
+function renderLeads(filtrados) {
+  const data = filtrados || leads;
+  document.getElementById('badge-clientes').textContent = leads.length;
+  const tbody = document.getElementById('leads-tbody');
+  tbody.innerHTML = data.map((l, i) => `
+    <tr>
+      <td><strong>${l.nombre}</strong><br><span style="font-size:10px;color:var(--muted);">${l.wa}</span></td>
+      <td><span class="badge b-gold" style="font-size:9px;">${l.producto}</span></td>
+      <td style="color:var(--muted);font-size:12px;">${l.asesor}</td>
+      <td style="color:var(--muted);font-size:12px;">${l.pais}</td>
+      <td><span class="badge ${estadoBadge[l.estado]||'b-gray'}">${l.estado}</span></td>
+      <td style="font-size:11px;color:var(--muted);">${l.follow}</td>
+      <td>
+        <select style="font-size:10px;padding:3px 6px;border:1px solid var(--border2);border-radius:4px;background:var(--bg);color:var(--text);" onchange="cambiarEstado(${leads.indexOf(l)}, this.value)">
+          <option>Nuevo</option><option>Interesado</option><option>Calificado</option><option>Negociando</option><option>Vendido/Firmado</option>
+        </select>
+      </td>
+    </tr>`).join('');
+  // Set select values
+  tbody.querySelectorAll('select').forEach((sel, idx) => { sel.value = data[idx].estado; });
+}
+
+function cambiarEstado(idx, nuevoEstado) {
+  leads[idx].estado = nuevoEstado;
+  toast(`Estado de ${leads[idx].nombre} → ${nuevoEstado}`);
+}
+
+function filtrarLeads() {
+  const est  = document.getElementById('filtro-estado').value;
+  const prod = document.getElementById('filtro-prod').value.toLowerCase();
+  let filtrados = leads;
+  if (est)  filtrados = filtrados.filter(l => l.estado === est);
+  if (prod) filtrados = filtrados.filter(l => l.producto.toLowerCase().includes(prod === 'apartamentos' ? 'apto' : prod === 'oficinas' ? 'ofic' : 'local'));
+  renderLeads(filtrados);
+}
+
+function toggleForm() {
+  const f = document.getElementById('form-prospecto');
+  f.classList.toggle('open');
+}
+function cerrarForm() { document.getElementById('form-prospecto').classList.remove('open'); }
+
+function guardarProspecto() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  if (!nombre) { toast('Por favor ingresa el nombre del cliente'); return; }
+  leads.unshift({
+    nombre,
+    wa:       document.getElementById('f-wa').value,
+    email:    document.getElementById('f-email').value,
+    pais:     document.getElementById('f-pais').value || 'N/A',
+    producto: document.getElementById('f-producto').value,
+    asesor:   document.getElementById('f-asesor').value,
+    estado:   'Nuevo',
+    cap:      document.getElementById('f-cap').value,
+    fuente:   document.getElementById('f-fuente').value,
+    follow:   'Pendiente',
+  });
+  renderLeads();
+  cerrarForm();
+  toast(`✓ Prospecto ${nombre} registrado exitosamente`);
+  ['f-nombre','f-wa','f-email','f-pais','f-coment'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ── TORRES ──
+const torreB = {pisos:16, vendidos:[4,5,9,10,14,15], disponibles:[11,12,13,16], reservados:[7,8]};
+const torreC = {pisos:15, vendidos:[3,4,5,6,7,8,9,10,11], disponibles:[12,13,14,15], reservados:[2]};
+
+function renderTorres() {
+  renderTorre('b', torreB);
+  renderTorre('c', torreC);
+}
+
+function renderTorre(id, data) {
+  const el = document.getElementById(`torre-${id}-body`);
+  let html = '';
+  for (let p = data.pisos; p >= 2; p--) {
+    const cls = data.vendidos.includes(p)    ? 'u-vend' :
+                data.disponibles.includes(p) ? 'u-disp' :
+                data.reservados.includes(p)  ? 'u-res'  : 'u-const';
+    const lbl = data.vendidos.includes(p)    ? 'V' :
+                data.disponibles.includes(p) ? 'D' :
+                data.reservados.includes(p)  ? 'R' : 'C';
+    html += `<div class="floor-row">
+      <span class="floor-num">Piso ${p}</span>
+      <div class="unit-box ${cls}" title="Piso ${p} Apt A · Torre ${id.toUpperCase()}">${lbl}</div>
+      <div class="unit-box ${cls}" title="Piso ${p} Apt B · Torre ${id.toUpperCase()}">${lbl}</div>
+      <div class="unit-box ${cls}" title="Piso ${p} Apt C · Torre ${id.toUpperCase()}">${lbl}</div>
+      <div class="unit-box ${cls}" title="Piso ${p} Apt D · Torre ${id.toUpperCase()}">${lbl}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function switchInvTab(tab) {
+  ['torres','oficinas','locales'].forEach(t => {
+    document.getElementById('inv-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.getElementById('tab-torres').className   = 'btn btn-sm ' + (tab==='torres'   ? 'btn-gold' : 'btn-outline');
+  document.getElementById('tab-oficinas').className = 'btn btn-sm ' + (tab==='oficinas' ? 'btn-gold' : 'btn-outline');
+  document.getElementById('tab-locales').className  = 'btn btn-sm ' + (tab==='locales'  ? 'btn-gold' : 'btn-outline');
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ── CSV EXPORT ──
+function exportCSV() {
+  const rows = [['Nombre','WhatsApp','Email','País','Producto','Asesor','Estado','Capacidad','Fuente']];
+  leads.forEach(l => rows.push([l.nombre,l.wa,l.email,l.pais,l.producto,l.asesor,l.estado,l.cap,l.fuente]));
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'sambil-prospectos-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+document.getElementById('topbar-sec-btn').addEventListener('click', () => {
+  const active = document.querySelector('.nav-item.active')?.dataset.sec;
+  if (active === 'clientes') exportCSV();
+  else topbarAction();
+});
+</script>
+</body>
+</html>
